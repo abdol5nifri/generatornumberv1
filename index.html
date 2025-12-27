@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مولد الأرقام العشوائية</title>
+    <style>
+        /* أيقونات Unicode */
+        .fa-random:before { content: "🎲"; }
+        .fa-bolt:before { content: "⚡"; }
+        .fa-list-ol:before { content: "🔢"; }
+        .fa-copy:before { content: "📋"; }
+        .fa-times:before { content: "❌"; }
+        .fa-arrow-down:before { content: "⬇️"; }
+        .fa-arrow-up:before { content: "⬆️"; }
+        .fa-hashtag:before { content: "#️⃣"; }
+        .fa-sort:before { content: "🔄"; }
+        .fa-whatsapp:before { content: "📱"; }
+        .fa-share:before { content: "🔗"; }
+        .fa-flip:before { content: "🔄"; }
+        .fa-undo:before { content: "↩️"; }
+        
+        /* الأساسيات */
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --whatsapp-color: #25D366;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --success-color: #4cc9f0;
+            --border-radius: 10px;
+            --box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html, body {
+            overflow: hidden;
+            height: 100%;
+            width: 100%;
+            position: fixed;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 8px;
+            touch-action: pan-y;
+        }
+
+        /* الترويسة - صغيرة جداً */
+        .header {
+            text-align: center;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+            padding: 0;
+        }
+
+        .header h1 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+        }
+
+        .header p {
+            color: var(--gray-color);
+            font-size: 0.7rem;
+        }
+
+        /* الحاوية الرئيسية */
+        .container-wrapper {
+            flex-grow: 1;
+            perspective: 1000px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 12px;
+            height: auto;
+            min-height: 400px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            width: 100%;
+        }
+
+        .container.flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* إعدادات المولد - الواجهة الأمامية */
+        .front-face {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            backface-visibility: hidden;
+            position: absolute;
+            width: 100%;
+            padding: 12px;
+            left: 0;
+            top: 0;
+        }
+
+        .generator-settings {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .setting-group.full-width {
+            grid-column: span 2;
+        }
+
+        .setting-group label {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--secondary-color);
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .setting-group input, .setting-group select {
+            padding: 6px 8px;
+            border: 1.5px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            transition: var(--transition);
+            width: 100%;
+            height: 34px;
+            background-color: #f8f9fa;
+        }
+
+        .setting-group input:focus, .setting-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+        }
+
+        /* أزرار التحكم */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            min-width: 0;
+            height: 38px;
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .btn-generate {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-generate:hover, .btn-generate:active {
+            background-color: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+
+        /* أزرار المشاركة */
+        .share-section {
+            flex-shrink: 0;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .share-title {
+            font-size: 0.75rem;
+            color: var(--gray-color);
+            margin-bottom: 6px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .share-btn {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            flex: 1;
+            max-width: 120px;
+            height: 32px;
+        }
+
+        .whatsapp-btn {
+            background-color: var(--whatsapp-color);
+            color: white;
+        }
+
+        .whatsapp-btn:hover, .whatsapp-btn:active {
+            background-color: #1da851;
+            transform: translateY(-1px);
+        }
+
+        .share-link-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .share-link-btn:hover, .share-link-btn:active {
+            background-color: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+
+        /* مساحة فارغة صغيرة جداً */
+        .spacer {
+            flex-grow: 1;
+            min-height: 20px;
+            max-height: 40px;
+        }
+
+        /* الواجهة الخلفية - عرض النتائج */
+        .back-face {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            transform: rotateY(180deg);
+            backface-visibility: hidden;
+            position: absolute;
+            width: 100%;
+            padding: 12px;
+            left: 0;
+            top: 0;
+            overflow: hidden;
+        }
+
+        /* ترويسة النتائج */
+        .results-header {
+            text-align: center;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .results-header h3 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .results-count {
+            color: var(--gray-color);
+            font-size: 0.8rem;
+        }
+
+        /* عرض الأرقام مع سكرول */
+        .numbers-grid {
+            flex-grow: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 8px;
+            overflow-y: auto;
+            padding: 5px;
+            margin-bottom: 10px;
+            align-content: start;
+            max-height: 300px;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
+        }
+
+        /* تحسين مظهر السكرول */
+        .numbers-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .numbers-grid::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .numbers-grid::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .numbers-grid::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color);
+        }
+
+        /* لـ Firefox */
+        .numbers-grid {
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) #f1f1f1;
+        }
+
+        .number-item {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-align: center;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            user-select: none;
+        }
+
+        /* النص الكامل مع سكرول */
+        .full-text-container {
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            padding: 10px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .full-text-label {
+            font-size: 0.8rem;
+            color: var(--gray-color);
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .full-text {
+            background-color: white;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 0.85rem;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            word-break: break-all;
+            max-height: 80px;
+            overflow-y: auto;
+            touch-action: pan-y;
+        }
+
+        /* تحسين سكرول النص */
+        .full-text::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        .full-text::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .full-text::-webkit-scrollbar-thumb {
+            background: var(--gray-color);
+            border-radius: 3px;
+        }
+
+        /* أزرار النتائج */
+        .results-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .results-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 40px;
+        }
+
+        .copy-btn {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .copy-btn:hover {
+            background-color: #3aa8d0;
+        }
+
+        .back-btn {
+            background-color: var(--gray-color);
+            color: white;
+        }
+
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+
+        /* الرسائل */
+        .message {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 12px;
+            border-radius: var(--border-radius);
+            color: white;
+            font-weight: 600;
+            box-shadow: var(--box-shadow);
+            z-index: 1001;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: var(--transition);
+            max-width: 70%;
+            font-size: 0.8rem;
+        }
+
+        .message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .message.success {
+            background-color: var(--success-color);
+        }
+
+        .message.error {
+            background-color: var(--accent-color);
+        }
+
+        .message.info {
+            background-color: var(--primary-color);
+        }
+
+        /* التذييل */
+        .footer {
+            text-align: center;
+            color: var(--gray-color);
+            font-size: 0.6rem;
+            margin-top: 5px;
+            padding-top: 5px;
+            flex-shrink: 0;
+        }
+
+        /* =============================== */
+        /* شاشات كبيرة (حاسوب) - VERSION FIXED */
+        /* =============================== */
+        @media (min-width: 768px) {
+            body {
+                padding: 10px;
+                justify-content: flex-start;
+            }
+            
+            .container {
+                max-width: 420px;
+                margin: 10px auto;
+                padding: 12px;
+                max-height: 500px;
+                min-height: 350px;
+            }
+            
+            .container-wrapper {
+                padding: 5px 0;
+                justify-content: flex-start;
+            }
+            
+            .header {
+                margin-bottom: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.2rem;
+            }
+            
+            .header p {
+                font-size: 0.7rem;
+            }
+            
+            .front-face, .back-face {
+                padding: 12px;
+            }
+            
+            .generator-settings {
+                gap: 6px;
+                margin-bottom: 8px;
+            }
+            
+            .setting-group label {
+                font-size: 0.7rem;
+            }
+            
+            .setting-group input, .setting-group select {
+                height: 32px;
+                font-size: 0.75rem;
+                padding: 5px 7px;
+            }
+            
+            .controls {
+                margin-bottom: 8px;
+            }
+            
+            .btn {
+                height: 36px;
+                font-size: 0.8rem;
+                padding: 7px 10px;
+                max-width: 180px;
+            }
+            
+            .share-section {
+                padding: 6px;
+                margin-top: 8px;
+            }
+            
+            .share-title {
+                font-size: 0.7rem;
+            }
+            
+            .share-btn {
+                height: 30px;
+                font-size: 0.7rem;
+                padding: 5px 8px;
+                max-width: 110px;
+            }
+            
+            .numbers-grid {
+                grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+                gap: 8px;
+                max-height: 250px;
+            }
+            
+            .number-item {
+                padding: 8px 10px;
+                font-size: 0.95rem;
+                min-height: 45px;
+            }
+            
+            .full-text-container {
+                padding: 8px;
+                margin-bottom: 8px;
+            }
+            
+            .full-text-label {
+                font-size: 0.75rem;
+            }
+            
+            .full-text {
+                padding: 6px;
+                font-size: 0.8rem;
+                max-height: 70px;
+            }
+            
+            .results-btn {
+                height: 38px;
+                font-size: 0.75rem;
+                padding: 8px;
+            }
+            
+            .spacer {
+                min-height: 15px;
+                max-height: 25px;
+            }
+            
+            .footer {
+                margin-top: 5px;
+                font-size: 0.55rem;
+            }
+        }
+
+        /* شاشات صغيرة (جوال) */
+        @media (max-width: 767px) {
+            .generator-settings {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+            
+            .setting-group.full-width {
+                grid-column: span 1;
+            }
+            
+            .share-buttons {
+                flex-direction: row;
+            }
+            
+            .numbers-grid {
+                grid-template-columns: repeat(auto-fill, minmax(55px, 1fr));
+                gap: 6px;
+                max-height: 250px;
+            }
+            
+            .number-item {
+                padding: 8px;
+                font-size: 0.9rem;
+                min-height: 45px;
+            }
+        }
+
+        /* شاشات قصيرة جداً */
+        @media (max-height: 500px) {
+            .header {
+                margin-bottom: 5px;
+            }
+            
+            .header h1 {
+                font-size: 1rem;
+            }
+            
+            .header p {
+                font-size: 0.65rem;
+            }
+            
+            .container {
+                padding: 8px;
+            }
+            
+            .front-face, .back-face {
+                padding: 8px;
+            }
+            
+            .generator-settings {
+                margin-bottom: 6px;
+                gap: 4px;
+            }
+            
+            .setting-group input, .setting-group select {
+                height: 30px;
+                font-size: 0.75rem;
+                padding: 4px 6px;
+            }
+            
+            .controls {
+                margin-bottom: 6px;
+            }
+            
+            .btn {
+                height: 32px;
+                font-size: 0.75rem;
+                padding: 6px 8px;
+            }
+            
+            .share-section {
+                padding: 6px;
+                margin-top: 8px;
+            }
+            
+            .share-btn {
+                height: 30px;
+                font-size: 0.7rem;
+                padding: 4px 8px;
+            }
+            
+            .spacer {
+                min-height: 10px;
+                max-height: 20px;
+            }
+            
+            .numbers-grid {
+                grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+                gap: 5px;
+                max-height: 200px;
+            }
+            
+            .number-item {
+                padding: 6px;
+                font-size: 0.85rem;
+                min-height: 40px;
+            }
+        }
+
+        /* شاشات صغيرة جداً بالعرض */
+        @media (max-width: 350px) {
+            .share-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 5px;
+            }
+            
+            .share-btn {
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .numbers-grid {
+                grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+                gap: 4px;
+            }
+            
+            .number-item {
+                padding: 5px;
+                font-size: 0.8rem;
+                min-height: 35px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- الترويسة -->
+    <div class="header">
+        <h1><span class="fa-random"></span> مولد الأرقام العشوائية</h1>
+        <p>توليد أرقام عشوائية بدون تكرار</p>
+    </div>
+
+    <!-- الحاوية الرئيسية - ستتقلب -->
+    <div class="container-wrapper">
+        <div class="container" id="mainContainer">
+            <!-- الواجهة الأمامية - الإعدادات -->
+            <div class="front-face" id="frontFace">
+                <!-- إعدادات المولد -->
+                <div class="generator-settings">
+                    <div class="setting-group">
+                        <label for="minRange"><span class="fa-arrow-down"></span> الحد الأدنى</label>
+                        <input type="number" id="minRange" min="0" max="9999" value="0">
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label for="maxRange"><span class="fa-arrow-up"></span> الحد الأقصى</label>
+                        <input type="number" id="maxRange" min="1" max="10000" value="1000">
+                    </div>
+                    
+                    <div class="setting-group full-width">
+                        <label for="count"><span class="fa-hashtag"></span> عدد الأرقام</label>
+                        <input type="number" id="count" min="1" max="1000" value="15">
+                    </div>
+                    
+                    <div class="setting-group full-width">
+                        <label for="sorting"><span class="fa-sort"></span> ترتيب النتائج</label>
+                        <select id="sorting">
+                            <option value="none">بدون ترتيب</option>
+                            <option value="asc">ترتيب تصاعدي</option>
+                            <option value="desc">ترتيب تنازلي</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- أزرار التحكم -->
+                <div class="controls">
+                    <button class="btn btn-generate" id="generateBtn">
+                        <span class="fa-bolt"></span> توليد الأرقام
+                    </button>
+                </div>
+                
+                <!-- مسافة بسيطة -->
+                <div class="spacer"></div>
+
+                <!-- أزرار المشاركة -->
+                <div class="share-section">
+                    <div class="share-title">شارك التطبيق</div>
+                    <div class="share-buttons">
+                        <button class="share-btn whatsapp-btn" id="whatsappBtn">
+                            <span class="fa-whatsapp"></span> واتساب
+                        </button>
+                        <button class="share-btn share-link-btn" id="shareLinkBtn">
+                            <span class="fa-share"></span> رابط
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الواجهة الخلفية - النتائج -->
+            <div class="back-face" id="backFace">
+                <div class="results-header">
+                    <h3><span class="fa-list-ol"></span> الأرقام المولدة</h3>
+                    <div class="results-count" id="resultsCount">0 أرقام</div>
+                </div>
+                
+                <!-- شبكة الأرقام -->
+                <div class="numbers-grid" id="numbersGrid">
+                    <!-- الأرقام ستظهر هنا -->
+                </div>
+                
+                <!-- النص الكامل -->
+                <div class="full-text-container">
+                    <div class="full-text-label">النص الكامل:</div>
+                    <div class="full-text" id="fullText">
+                        <!-- النص الكامل سيظهر هنا -->
+                    </div>
+                </div>
+                
+                <!-- أزرار التحكم -->
+                <div class="results-actions">
+                    <button class="results-btn copy-btn" id="copyResultsBtn">
+                        <span class="fa-copy"></span> نسخ النص
+                    </button>
+                    <button class="results-btn back-btn" id="backBtn">
+                        <span class="fa-undo"></span> العودة
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- التذييل -->
+    <div class="footer">
+        <p>يعمل بدون إنترنت - متوافق مع APK</p>
+    </div>
+
+    <!-- الرسائل العائمة -->
+    <div class="message" id="message"></div>
+
+    <script>
+        // تعريف العناصر
+        const minRangeInput = document.getElementById('minRange');
+        const maxRangeInput = document.getElementById('maxRange');
+        const countInput = document.getElementById('count');
+        const sortingSelect = document.getElementById('sorting');
+        const generateBtn = document.getElementById('generateBtn');
+        const whatsappBtn = document.getElementById('whatsappBtn');
+        const shareLinkBtn = document.getElementById('shareLinkBtn');
+        const mainContainer = document.getElementById('mainContainer');
+        const numbersGrid = document.getElementById('numbersGrid');
+        const resultsCount = document.getElementById('resultsCount');
+        const fullText = document.getElementById('fullText');
+        const copyResultsBtn = document.getElementById('copyResultsBtn');
+        const backBtn = document.getElementById('backBtn');
+        const message = document.getElementById('message');
+
+        // متغيرات التطبيق
+        let currentNumbers = [];
+        const appName = "مولد الأرقام العشوائية";
+        const appDescription = "تطبيق مجاني لتوليد أرقام عشوائية بدون إنترنت!";
+        const appUrl = "https://your-domain.com";
+
+        // دالة لمنع التمرير العام ولكن السماح به في مناطق معينة
+        function preventDefaultScroll(e) {
+            if (e.target.closest('.numbers-grid') || e.target.closest('.full-text')) {
+                return;
+            }
+            
+            e.preventDefault();
+        }
+
+        document.addEventListener('touchmove', preventDefaultScroll, { passive: false });
+        document.addEventListener('wheel', function(e) {
+            if (!e.target.closest('.numbers-grid') && !e.target.closest('.full-text')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // توليد رقم عشوائي ضمن نطاق
+        function getRandomNumber(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // توليد مجموعة أرقام
+        function generateNumbers() {
+            const min = parseInt(minRangeInput.value);
+            const max = parseInt(maxRangeInput.value);
+            const count = parseInt(countInput.value);
+            const sorting = sortingSelect.value;
+            
+            if (isNaN(min) || isNaN(max) || isNaN(count)) {
+                showMessage('الرجاء إدخال قيم صحيحة', 'error');
+                return;
+            }
+            
+            if (min > max) {
+                showMessage('الحد الأدنى يجب أن يكون أقل من الحد الأقصى', 'error');
+                return;
+            }
+            
+            if (count <= 0) {
+                showMessage('عدد الأرقام يجب أن يكون أكبر من صفر', 'error');
+                return;
+            }
+            
+            if (count > 1000) {
+                showMessage('الحد الأقصى لعدد الأرقام هو 1000', 'error');
+                return;
+            }
+            
+            const range = max - min + 1;
+            if (count > range) {
+                showMessage(`لا يمكن توليد ${count} رقمًا مختلفًا في النطاق من ${min} إلى ${max}`, 'error');
+                return;
+            }
+            
+            const numbers = new Set();
+            while (numbers.size < count) {
+                numbers.add(getRandomNumber(min, max));
+            }
+            
+            currentNumbers = Array.from(numbers);
+            
+            if (sorting === 'asc') {
+                currentNumbers.sort((a, b) => a - b);
+            } else if (sorting === 'desc') {
+                currentNumbers.sort((a, b) => b - a);
+            }
+            
+            displayResults(currentNumbers);
+            mainContainer.classList.add('flipped');
+            showMessage(`تم توليد ${currentNumbers.length} رقمًا`, 'success');
+        }
+
+        // عرض النتائج في الواجهة الخلفية
+        function displayResults(numbers) {
+            numbersGrid.innerHTML = '';
+            
+            if (numbers.length > 20) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'info-message';
+                messageDiv.style.gridColumn = '1 / -1';
+                messageDiv.style.textAlign = 'center';
+                messageDiv.style.color = 'var(--gray-color)';
+                messageDiv.style.fontSize = '0.8rem';
+                messageDiv.style.padding = '5px';
+                messageDiv.style.marginBottom = '5px';
+                messageDiv.textContent = `${numbers.length} أرقام - اسحب للتمرير`;
+                numbersGrid.appendChild(messageDiv);
+            }
+            
+            numbers.forEach(number => {
+                const numberElement = document.createElement('div');
+                numberElement.className = 'number-item';
+                numberElement.textContent = number;
+                numbersGrid.appendChild(numberElement);
+            });
+            
+            const numbersText = numbers.join('-');
+            fullText.textContent = numbersText;
+            resultsCount.textContent = `${numbers.length} أرقام`;
+        }
+
+        // العودة إلى واجهة الإعدادات
+        function goBackToSettings() {
+            mainContainer.classList.remove('flipped');
+        }
+
+        // نسخ النتائج
+        function copyResults() {
+            if (currentNumbers.length === 0) {
+                showMessage('لا توجد أرقام لنسخها', 'error');
+                return;
+            }
+            
+            const numbersText = currentNumbers.join('-');
+            copyToClipboard(numbersText);
+        }
+
+        // مشاركة عبر واتساب
+        function shareOnWhatsApp() {
+            const message = `🎲 ${appName}\n\n${appDescription}\n\n📱 حمل التطبيق من:\n${appUrl}`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            
+            window.open(whatsappUrl, '_blank', 'width=600,height=400');
+            showMessage('فتح واتساب للمشاركة', 'info');
+        }
+
+        // مشاركة الرابط
+        function shareAppLink() {
+            if (navigator.share) {
+                navigator.share({
+                    title: appName,
+                    text: appDescription,
+                    url: appUrl
+                }).then(() => {
+                    showMessage('تمت المشاركة', 'success');
+                }).catch(() => {
+                    copyToClipboard(appUrl);
+                });
+            } else {
+                copyToClipboard(appUrl);
+            }
+        }
+
+        // نسخ نص
+        function copyToClipboard(text) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        showMessage('تم النسخ إلى الحافظة', 'success');
+                    })
+                    .catch(() => {
+                        copyToClipboardFallback(text);
+                    });
+            } else {
+                copyToClipboardFallback(text);
+            }
+        }
+
+        // طريقة بديلة للنسخ
+        function copyToClipboardFallback(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showMessage('تم النسخ إلى الحافظة', 'success');
+            } catch {
+                showMessage('فشل النسخ', 'error');
+            }
+            
+            document.body.removeChild(textarea);
+        }
+
+        // إظهار رسالة
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = `message ${type} show`;
+            
+            setTimeout(() => {
+                message.classList.remove('show');
+            }, 2000);
+        }
+
+        // التحقق من المدخلات
+        function validateInputs() {
+            let min = parseInt(minRangeInput.value);
+            let max = parseInt(maxRangeInput.value);
+            let count = parseInt(countInput.value);
+            
+            if (isNaN(min) || min < 0) minRangeInput.value = 0;
+            if (isNaN(max) || max < 1) maxRangeInput.value = 1000;
+            if (isNaN(count) || count < 1) countInput.value = 15;
+            
+            if (min >= max) maxRangeInput.value = min + 1;
+            
+            const maxCount = parseInt(maxRangeInput.value) - parseInt(minRangeInput.value) + 1;
+            countInput.max = Math.min(1000, maxCount);
+            
+            if (count > countInput.max) countInput.value = countInput.max;
+        }
+
+        // إضافة الأحداث
+        generateBtn.addEventListener('click', generateNumbers);
+        whatsappBtn.addEventListener('click', shareOnWhatsApp);
+        shareLinkBtn.addEventListener('click', shareAppLink);
+        copyResultsBtn.addEventListener('click', copyResults);
+        backBtn.addEventListener('click', goBackToSettings);
+        
+        minRangeInput.addEventListener('change', validateInputs);
+        maxRangeInput.addEventListener('change', validateInputs);
+        countInput.addEventListener('change', validateInputs);
+        
+        window.addEventListener('load', function() {
+            validateInputs();
+        });
+        
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+        
+        numbersGrid.addEventListener('touchstart', function(e) {
+            this.style.overflowY = 'auto';
+        });
+        
+        fullText.addEventListener('touchstart', function(e) {
+            this.style.overflowY = 'auto';
+        });
+    </script>
+</body>
+</html>
